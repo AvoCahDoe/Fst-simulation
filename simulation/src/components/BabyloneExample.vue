@@ -10,9 +10,17 @@
 
 </template>
 
+
+
+
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { BasicScene } from '@/Scenes/BasicScene';
+// import { BasicScene } from '@/Scenes/BasicScene';
+import { sdMaterials } from '@/Scenes/sdMaterials';
+
+
+
+
 
 export default defineComponent({
   name: 'BabyloneExample',
@@ -21,18 +29,11 @@ export default defineComponent({
     const canvas = document.querySelector("canvas");
     
     if (canvas != null){
-        new BasicScene(canvas);
+        new sdMaterials(canvas);
     }
     
   }
 
-
-
-
-
-
-
-  
 });
 </script>
 
@@ -59,4 +60,9 @@ canvas {
   width : 70%;
   height: 70%;
 }
+
+body{
+  background-color: gainsboro;
+}
+
 </style>
