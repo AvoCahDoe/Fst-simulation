@@ -11,13 +11,13 @@
 import { defineComponent } from 'vue';
 // import { BasicScene } from '@/Scenes/BasicScene';
 import { sdMaterials } from '@/Scenes/sdMaterials';
-
+import { PBR } from '@/Scenes/PBR';
 
 
 
 
 export default defineComponent({
-  name: 'BabyloneExample',
+  name: 'PBR',
   mounted(){
     
     const canvas = document.querySelector("canvas");
