@@ -10,7 +10,8 @@ A web-based interactive 3D simulation of the **Faculté des Sciences et Techniqu
 So far a simple textured ground with a sphere and the ability to control camera position
 
 
-![Campus Preview](./assets/groundAndSphere.png)
+![Campus Preview](./assets/smooth_surface.png)
+![Campus Preview](./assets/image.png)
 
 
 >"Great things are not done by impulse, but by a series of small things brought together." -Vincent van Gogh
