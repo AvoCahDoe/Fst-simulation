@@ -10,25 +10,54 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
 // import { BasicScene } from '@/Scenes/BasicScene';
-import { sdMaterials } from '@/Scenes/sdMaterials';
+// import { sdMaterials } from '@/Scenes/sdMaterials';
 import { PBR } from '@/Scenes/PBR';
 
 
 
 
 export default defineComponent({
-  name: 'PBR',
+  name: 'BabyloneExamples',
   mounted(){
-    
     const canvas = document.querySelector("canvas");
+
     
     if (canvas != null){
-        new sdMaterials(canvas);
+        // new sdMaterials(canvas);
+        new PBR(canvas);
     }
-    
   }
 
 });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 </script>
 
 
