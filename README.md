@@ -66,7 +66,7 @@ cd simulation
 npm install
 
 # Run the local development server
-npm run dev
+npm run serve
 
 ```
 
