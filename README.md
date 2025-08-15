@@ -1,7 +1,6 @@
-# 🏫 3D Simulation of FST Beni Mellal Campus
+# 🏫 3D Simulation of FST Beni-Mellal Campus
 
 A web-based interactive 3D simulation of the **Faculté des Sciences et Techniques de Beni Mellal** campus, built using **Babylon.js** and **Vue.js**. This project aims to offer a realistic, navigable virtual environment of the FST campus to help students, visitors, and staff explore the university space.
-
 
 ---
 
@@ -9,12 +8,10 @@ A web-based interactive 3D simulation of the **Faculté des Sciences et Techniqu
 
 So far a simple textured ground with a sphere and the ability to control camera position
 
-
 ![Campus Preview](./assets/smooth_surface.png)
 ![Campus Preview](./assets/image.png)
 
-
->"Great things are not done by impulse, but by a series of small things brought together." -Vincent van Gogh
+> "Great things are not done by impulse, but by a series of small things brought together." -Vincent van Gogh
 
 ---
 
@@ -24,17 +21,16 @@ So far a simple textured ground with a sphere and the ability to control camera 
 - 🏢 Realistic 3D models of key areas (amphitheaters, library, administration, etc.)
 - 🗺️ Interactive map with teleportation to locations
 - 🏷️ Tooltips and labels for buildings and facilities
-- 🌤️ Dynamic lighting and weather simulation 
+- 🌤️ Dynamic lighting and weather simulation
 
 ---
 
 ## 🛠️ Tech Stack (so far)
 
-| Tech           | Purpose                          |
-|----------------|----------------------------------|
-| [Vue.js](https://vuejs.org) | Front-end framework for UI and routing |
-| [Babylon.js](https://www.babylonjs.com/) | WebGL-powered 3D rendering engine |
-
+| Tech                                     | Purpose                                |
+| ---------------------------------------- | -------------------------------------- |
+| [Vue.js](https://vuejs.org)              | Front-end framework for UI and routing |
+| [Babylon.js](https://www.babylonjs.com/) | WebGL-powered 3D rendering engine      |
 
 ---
 
@@ -70,7 +66,6 @@ npm install
 npm run serve
 
 ```
-
 
 ## 3D Model Notes
 
