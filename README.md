@@ -1,6 +1,6 @@
 # 🏫 3D Simulation of FST Beni-Mellal Campus
 
-A web-based interactive 3D simulation of the **Faculté des Sciences et Techniques de Beni Mellal** campus, built using **Babylon.js** and **Vue.js**. This project aims to offer a realistic, navigable virtual environment of the FST campus to help students, visitors, and staff explore the university space.
+ web-based interactive 3D simulation of the **Faculté des Sciences et Techniques de Beni Mellal** campus, built using **Babylon.js** and **Vue.js**. This project aims to offer a realistic, navigable virtual environment of the FST campus to help students, visitors, and staff explore the university space.
 
 ---
 
