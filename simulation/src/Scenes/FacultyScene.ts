@@ -50,8 +50,8 @@ export class FacultyScene {
     this.player?.applySettings(settings);
   }
 
-  setSettingsActive(active: boolean): void {
-    this.player?.setSettingsActive(active);
+  setInputActive(active: boolean): void {
+    this.player?.setInputActive(active);
   }
 
   requestPointerLock(): void {

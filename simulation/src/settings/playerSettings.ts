@@ -12,6 +12,7 @@ export interface PlayerSettings {
   fov: number;
   sensitivity: number;
   flying: boolean;
+  jumpForce: number;
   keys: PlayerKeyBinds;
 }
 
@@ -19,12 +20,15 @@ const STORAGE_KEY = "fst-sim-player-settings";
 
 export const SPEED_MIN = 0.05;
 export const SPEED_MAX = 2.0;
+export const JUMP_FORCE_MIN = 0.2;
+export const JUMP_FORCE_MAX = 1.5;
 
 export const DEFAULT_PLAYER_SETTINGS: PlayerSettings = {
   speed: 0.12,
   fov: 75,
   sensitivity: 1.0,
-  flying: true,
+  flying: false,
+  jumpForce: 0.65,
   keys: {
     forward: "KeyW",
     backward: "KeyS",
@@ -94,20 +98,37 @@ export function formatKeyLabel(code: string): string {
   return code;
 }
 
+function cloneDefaults(): PlayerSettings {
+  return {
+    ...DEFAULT_PLAYER_SETTINGS,
+    keys: { ...DEFAULT_PLAYER_SETTINGS.keys },
+  };
+}
+
 export function loadPlayerSettings(): PlayerSettings {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return { ...DEFAULT_PLAYER_SETTINGS, keys: { ...DEFAULT_PLAYER_SETTINGS.keys } };
+    if (!raw) return cloneDefaults();
     const parsed = JSON.parse(raw) as Partial<PlayerSettings>;
     return {
-      speed: Math.min(SPEED_MAX, Math.max(SPEED_MIN, parsed.speed ?? DEFAULT_PLAYER_SETTINGS.speed)),
+      speed: Math.min(
+        SPEED_MAX,
+        Math.max(SPEED_MIN, parsed.speed ?? DEFAULT_PLAYER_SETTINGS.speed)
+      ),
       fov: parsed.fov ?? DEFAULT_PLAYER_SETTINGS.fov,
       sensitivity: parsed.sensitivity ?? DEFAULT_PLAYER_SETTINGS.sensitivity,
       flying: parsed.flying ?? DEFAULT_PLAYER_SETTINGS.flying,
+      jumpForce: Math.min(
+        JUMP_FORCE_MAX,
+        Math.max(
+          JUMP_FORCE_MIN,
+          parsed.jumpForce ?? DEFAULT_PLAYER_SETTINGS.jumpForce
+        )
+      ),
       keys: { ...DEFAULT_PLAYER_SETTINGS.keys, ...parsed.keys },
     };
   } catch {
-    return { ...DEFAULT_PLAYER_SETTINGS, keys: { ...DEFAULT_PLAYER_SETTINGS.keys } };
+    return cloneDefaults();
   }
 }
 

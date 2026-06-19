@@ -3,10 +3,11 @@
     <div class="viewport">
       <canvas
         ref="canvasRef"
-        :class="{ playing: isPlaying && !settingsOpen }"
+        :class="{ playing: isPlaying && !settingsOpen && !menuOpen }"
       ></canvas>
 
       <button
+        v-if="!menuOpen"
         class="gear-btn"
         type="button"
         title="Settings"
@@ -15,16 +16,18 @@
         ⚙
       </button>
 
+      <PlayMenu
+        v-if="menuOpen && !settingsOpen"
+        @play="startPlaying"
+        @open-settings="setSettingsOpen(true)"
+      />
+
       <SettingsPanel
         :open="settingsOpen"
         :settings="playerSettings"
         @close="setSettingsOpen(false)"
         @change="onSettingsChange"
       />
-
-      <div v-if="showHint" class="hint" @click="startPlaying">
-        Click to play — move with your keys, mouse to look, Esc for settings
-      </div>
     </div>
   </div>
 </template>
@@ -32,6 +35,7 @@
 <script lang="ts">
 import { defineComponent, onMounted, onUnmounted, ref } from "vue";
 import { FacultyScene } from "@/Scenes/FacultyScene";
+import PlayMenu from "@/components/PlayMenu.vue";
 import SettingsPanel from "@/components/SettingsPanel.vue";
 import {
   loadPlayerSettings,
@@ -40,27 +44,32 @@ import {
 
 export default defineComponent({
   name: "BabyloneExamples",
-  components: { SettingsPanel },
+  components: { PlayMenu, SettingsPanel },
   setup() {
     const canvasRef = ref<HTMLCanvasElement | null>(null);
-    const showHint = ref(true);
+    const menuOpen = ref(true);
     const settingsOpen = ref(false);
     const isPlaying = ref(false);
     const playerSettings = ref<PlayerSettings>(loadPlayerSettings());
     let facultyScene: FacultyScene | null = null;
 
+    const updateInputState = () => {
+      const active = !menuOpen.value && !settingsOpen.value;
+      facultyScene?.setInputActive(active);
+    };
+
     const setSettingsOpen = (open: boolean) => {
       settingsOpen.value = open;
-      facultyScene?.setSettingsActive(open);
+      updateInputState();
       if (open) {
         isPlaying.value = false;
       }
     };
 
     const startPlaying = () => {
-      showHint.value = false;
+      menuOpen.value = false;
+      updateInputState();
       canvasRef.value?.focus();
-      facultyScene?.setSettingsActive(false);
       facultyScene?.requestPointerLock();
     };
 
@@ -72,11 +81,8 @@ export default defineComponent({
     const onPointerLockChange = () => {
       const locked = document.pointerLockElement === canvasRef.value;
       isPlaying.value = locked;
-      if (locked) {
-        showHint.value = false;
-        if (settingsOpen.value) {
-          setSettingsOpen(false);
-        }
+      if (locked && settingsOpen.value) {
+        setSettingsOpen(false);
       }
     };
 
@@ -96,6 +102,7 @@ export default defineComponent({
     onMounted(() => {
       if (canvasRef.value) {
         facultyScene = new FacultyScene(canvasRef.value);
+        updateInputState();
       }
       document.addEventListener("pointerlockchange", onPointerLockChange);
       window.addEventListener("keydown", onKeyDown);
@@ -110,7 +117,7 @@ export default defineComponent({
 
     return {
       canvasRef,
-      showHint,
+      menuOpen,
       settingsOpen,
       isPlaying,
       playerSettings,
@@ -169,21 +176,5 @@ canvas.playing {
 
 .gear-btn:hover {
   background: rgba(0, 0, 0, 0.7);
-}
-
-.hint {
-  position: absolute;
-  bottom: 2rem;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(0, 0, 0, 0.65);
-  color: #fff;
-  padding: 0.75rem 1.5rem;
-  border-radius: 8px;
-  font-size: 0.95rem;
-  pointer-events: auto;
-  cursor: pointer;
-  user-select: none;
-  z-index: 5;
 }
 </style>

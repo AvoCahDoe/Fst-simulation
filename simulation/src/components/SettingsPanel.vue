@@ -43,6 +43,18 @@
           />
         </label>
 
+        <label v-if="!local.flying" class="field">
+          <span>Jump force ({{ local.jumpForce.toFixed(2) }})</span>
+          <input
+            v-model.number="local.jumpForce"
+            type="range"
+            :min="JUMP_FORCE_MIN"
+            :max="JUMP_FORCE_MAX"
+            step="0.05"
+            @input="emitChange"
+          />
+        </label>
+
         <label class="field toggle-field">
           <span>Flying mode</span>
           <input
@@ -80,9 +92,11 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, onMounted, onUnmounted, PropType, reactive, ref, watch } from "vue";
+import { computed, defineComponent, onMounted, onUnmounted, PropType, reactive, ref, watch } from "vue";
 import {
   formatKeyLabel,
+  JUMP_FORCE_MAX,
+  JUMP_FORCE_MIN,
   loadPlayerSettings,
   PlayerKeyBinds,
   PlayerSettings,
@@ -107,14 +121,23 @@ export default defineComponent({
     const local = reactive<PlayerSettings>(loadPlayerSettings());
     const listeningFor = ref<KeyField | null>(null);
 
-    const keybindFields: { key: KeyField; label: string }[] = [
-      { key: "forward", label: "Forward" },
-      { key: "backward", label: "Backward" },
-      { key: "left", label: "Left" },
-      { key: "right", label: "Right" },
-      { key: "flyUp", label: "Fly up" },
-      { key: "flyDown", label: "Fly down" },
-    ];
+    const keybindFields = computed(() => {
+      const base: { key: KeyField; label: string }[] = [
+        { key: "forward", label: "Forward" },
+        { key: "backward", label: "Backward" },
+        { key: "left", label: "Left" },
+        { key: "right", label: "Right" },
+      ];
+      if (local.flying) {
+        base.push(
+          { key: "flyUp", label: "Fly up" },
+          { key: "flyDown", label: "Fly down" }
+        );
+      } else {
+        base.push({ key: "flyUp", label: "Jump" });
+      }
+      return base;
+    });
 
     watch(
       () => props.settings,
@@ -169,6 +192,8 @@ export default defineComponent({
       startListening,
       SPEED_MIN,
       SPEED_MAX,
+      JUMP_FORCE_MIN,
+      JUMP_FORCE_MAX,
     };
   },
 });
