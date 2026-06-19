@@ -55,6 +55,26 @@
           />
         </label>
 
+        <label class="field">
+          <span>Camera view</span>
+          <select v-model="local.cameraMode" class="select-input" @change="emitChange">
+            <option value="first">First person</option>
+            <option value="third">Third person</option>
+          </select>
+        </label>
+
+        <label v-if="local.cameraMode === 'third'" class="field">
+          <span>Third person distance ({{ local.thirdPersonDistance.toFixed(1) }})</span>
+          <input
+            v-model.number="local.thirdPersonDistance"
+            type="range"
+            :min="THIRD_DIST_MIN"
+            :max="THIRD_DIST_MAX"
+            step="0.5"
+            @input="emitChange"
+          />
+        </label>
+
         <label class="field toggle-field">
           <span>Flying mode</span>
           <input
@@ -103,6 +123,8 @@ import {
   savePlayerSettings,
   SPEED_MAX,
   SPEED_MIN,
+  THIRD_DIST_MAX,
+  THIRD_DIST_MIN,
 } from "@/settings/playerSettings";
 
 type KeyField = keyof PlayerKeyBinds;
@@ -194,6 +216,8 @@ export default defineComponent({
       SPEED_MAX,
       JUMP_FORCE_MIN,
       JUMP_FORCE_MAX,
+      THIRD_DIST_MIN,
+      THIRD_DIST_MAX,
     };
   },
 });
@@ -276,6 +300,16 @@ export default defineComponent({
   width: 18px;
   height: 18px;
   accent-color: #5b8def;
+}
+
+.select-input {
+  width: 100%;
+  padding: 0.5rem 0.6rem;
+  border-radius: 6px;
+  border: 1px solid #4a4a65;
+  background: #2a2a40;
+  color: #e8e8f0;
+  font-size: 0.9rem;
 }
 
 .keybinds h3 {

@@ -7,12 +7,16 @@ export interface PlayerKeyBinds {
   flyDown: string;
 }
 
+export type CameraMode = "first" | "third";
+
 export interface PlayerSettings {
   speed: number;
   fov: number;
   sensitivity: number;
   flying: boolean;
   jumpForce: number;
+  cameraMode: CameraMode;
+  thirdPersonDistance: number;
   keys: PlayerKeyBinds;
 }
 
@@ -22,6 +26,8 @@ export const SPEED_MIN = 0.05;
 export const SPEED_MAX = 2.0;
 export const JUMP_FORCE_MIN = 0.2;
 export const JUMP_FORCE_MAX = 1.5;
+export const THIRD_DIST_MIN = 2;
+export const THIRD_DIST_MAX = 10;
 
 export const DEFAULT_PLAYER_SETTINGS: PlayerSettings = {
   speed: 0.12,
@@ -29,6 +35,8 @@ export const DEFAULT_PLAYER_SETTINGS: PlayerSettings = {
   sensitivity: 1.0,
   flying: false,
   jumpForce: 0.65,
+  cameraMode: "first",
+  thirdPersonDistance: 5,
   keys: {
     forward: "KeyW",
     backward: "KeyS",
@@ -123,6 +131,14 @@ export function loadPlayerSettings(): PlayerSettings {
         Math.max(
           JUMP_FORCE_MIN,
           parsed.jumpForce ?? DEFAULT_PLAYER_SETTINGS.jumpForce
+        )
+      ),
+      cameraMode: parsed.cameraMode ?? DEFAULT_PLAYER_SETTINGS.cameraMode,
+      thirdPersonDistance: Math.min(
+        THIRD_DIST_MAX,
+        Math.max(
+          THIRD_DIST_MIN,
+          parsed.thirdPersonDistance ?? DEFAULT_PLAYER_SETTINGS.thirdPersonDistance
         )
       ),
       keys: { ...DEFAULT_PLAYER_SETTINGS.keys, ...parsed.keys },

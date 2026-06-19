@@ -12,7 +12,7 @@
       </button>
 
       <p class="hint">
-        WASD to move · Space to jump · mouse to look · Esc for settings
+        WASD to move · Space to jump · mouse to look · Esc for settings · switch view in settings
       </p>
     </div>
   </div>
