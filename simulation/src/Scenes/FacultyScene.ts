@@ -9,14 +9,20 @@ import {
 } from "babylonjs";
 import { FacultyBuilding } from "@/building/FacultyBuilding";
 import { PlayerController } from "@/player/PlayerController";
+import {
+  loadPlayerSettings,
+  PlayerSettings,
+} from "@/settings/playerSettings";
 
 export class FacultyScene {
   private engine: Engine;
   private scene: Scene;
   private player: PlayerController | null = null;
   private readonly onResize: () => void;
+  private settings: PlayerSettings;
 
   constructor(private canvas: HTMLCanvasElement) {
+    this.settings = loadPlayerSettings();
     this.engine = new Engine(this.canvas, true);
     this.scene = this.createScene();
     this.setupLighting();
@@ -25,7 +31,8 @@ export class FacultyScene {
     this.player = new PlayerController(
       this.scene,
       this.canvas,
-      building.spawnPosition
+      building.spawnPosition,
+      this.settings
     );
 
     this.onResize = () => {
@@ -36,6 +43,23 @@ export class FacultyScene {
     this.engine.runRenderLoop(() => {
       this.scene.render();
     });
+  }
+
+  applyPlayerSettings(settings: PlayerSettings): void {
+    this.settings = settings;
+    this.player?.applySettings(settings);
+  }
+
+  setSettingsActive(active: boolean): void {
+    this.player?.setSettingsActive(active);
+  }
+
+  requestPointerLock(): void {
+    this.player?.requestPointerLock();
+  }
+
+  isPointerLocked(): boolean {
+    return this.player?.isPointerLocked() ?? false;
   }
 
   private createScene(): Scene {

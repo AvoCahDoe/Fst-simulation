@@ -1,0 +1,116 @@
+export interface PlayerKeyBinds {
+  forward: string;
+  backward: string;
+  left: string;
+  right: string;
+  flyUp: string;
+  flyDown: string;
+}
+
+export interface PlayerSettings {
+  speed: number;
+  fov: number;
+  sensitivity: number;
+  flying: boolean;
+  keys: PlayerKeyBinds;
+}
+
+const STORAGE_KEY = "fst-sim-player-settings";
+
+export const SPEED_MIN = 0.05;
+export const SPEED_MAX = 2.0;
+
+export const DEFAULT_PLAYER_SETTINGS: PlayerSettings = {
+  speed: 0.12,
+  fov: 75,
+  sensitivity: 1.0,
+  flying: true,
+  keys: {
+    forward: "KeyW",
+    backward: "KeyS",
+    left: "KeyA",
+    right: "KeyD",
+    flyUp: "Space",
+    flyDown: "AltLeft",
+  },
+};
+
+const CODE_TO_KEY: Record<string, number> = {
+  KeyW: 87,
+  KeyA: 65,
+  KeyS: 83,
+  KeyD: 68,
+  KeyQ: 81,
+  KeyE: 69,
+  KeyR: 82,
+  KeyF: 70,
+  KeyZ: 90,
+  KeyX: 88,
+  KeyC: 67,
+  KeyV: 86,
+  Space: 32,
+  ShiftLeft: 16,
+  ShiftRight: 16,
+  ControlLeft: 17,
+  ControlRight: 17,
+  AltLeft: 18,
+  AltRight: 18,
+  ArrowUp: 38,
+  ArrowDown: 40,
+  ArrowLeft: 37,
+  ArrowRight: 39,
+};
+
+export function keyCodeFromSetting(code: string): number {
+  if (CODE_TO_KEY[code] !== undefined) {
+    return CODE_TO_KEY[code];
+  }
+  if (code.startsWith("Key") && code.length === 4) {
+    return code.charCodeAt(3);
+  }
+  if (code.startsWith("Digit") && code.length === 6) {
+    return code.charCodeAt(5);
+  }
+  return 0;
+}
+
+export function formatKeyLabel(code: string): string {
+  const labels: Record<string, string> = {
+    Space: "Space",
+    ShiftLeft: "Shift",
+    ShiftRight: "Shift",
+    ControlLeft: "Ctrl",
+    ControlRight: "Ctrl",
+    AltLeft: "Alt",
+    AltRight: "Alt",
+    ArrowUp: "↑",
+    ArrowDown: "↓",
+    ArrowLeft: "←",
+    ArrowRight: "→",
+  };
+  if (labels[code]) return labels[code];
+  if (code.startsWith("Key")) return code.slice(3);
+  if (code.startsWith("Digit")) return code.slice(5);
+  return code;
+}
+
+export function loadPlayerSettings(): PlayerSettings {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return { ...DEFAULT_PLAYER_SETTINGS, keys: { ...DEFAULT_PLAYER_SETTINGS.keys } };
+    const parsed = JSON.parse(raw) as Partial<PlayerSettings>;
+    return {
+      speed: Math.min(SPEED_MAX, Math.max(SPEED_MIN, parsed.speed ?? DEFAULT_PLAYER_SETTINGS.speed)),
+      fov: parsed.fov ?? DEFAULT_PLAYER_SETTINGS.fov,
+      sensitivity: parsed.sensitivity ?? DEFAULT_PLAYER_SETTINGS.sensitivity,
+      flying: parsed.flying ?? DEFAULT_PLAYER_SETTINGS.flying,
+      keys: { ...DEFAULT_PLAYER_SETTINGS.keys, ...parsed.keys },
+    };
+  } catch {
+    return { ...DEFAULT_PLAYER_SETTINGS, keys: { ...DEFAULT_PLAYER_SETTINGS.keys } };
+  }
+}
+
+export function savePlayerSettings(settings: PlayerSettings): void {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+}
