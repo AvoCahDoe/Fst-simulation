@@ -52,6 +52,9 @@ export class FacultyScene {
 
   setInputActive(active: boolean): void {
     this.player?.setInputActive(active);
+    if (!active) {
+      this.player?.clearKeys();
+    }
   }
 
   requestPointerLock(): void {

@@ -9,9 +9,7 @@ import {
   UniversalCamera,
   Vector3,
 } from "babylonjs";
-import {
-  PlayerSettings,
-} from "@/settings/playerSettings";
+import { PlayerSettings } from "@/settings/playerSettings";
 
 const EYE_HEIGHT = 1.6;
 const THIRD_CAM_HEIGHT = 1.8;
@@ -26,14 +24,18 @@ export class PlayerController {
   private settings: PlayerSettings;
   private pointerLocked = false;
   private inputActive = false;
-  private controlsAttached = false;
   private jumpVelocity = 0;
   private airborne = false;
+  private yaw = 0;
+  private pitch = 0;
   private readonly keysPressed = new Set<string>();
   private readonly onPointerLockChange: () => void;
   private readonly onCanvasClick: () => void;
   private readonly onKeyDown: (event: KeyboardEvent) => void;
   private readonly onKeyUp: (event: KeyboardEvent) => void;
+  private readonly onMouseMove: (event: MouseEvent) => void;
+  private readonly onWindowBlur: () => void;
+  private readonly onVisibilityChange: () => void;
   private readonly beforeRenderObserver: Observer<Scene>;
 
   constructor(
@@ -70,34 +72,18 @@ export class PlayerController {
     avatarMat.specularColor = new Color3(0.1, 0.1, 0.1);
     this.avatar.material = avatarMat;
     this.avatar.isVisible = false;
-    this.avatar.position.copyFrom(this.collider.position);
-    this.avatar.position.y += 0.9;
+    this.syncAvatarPosition();
 
-    this.camera = new UniversalCamera(
-      "player",
-      this.getEyePosition(),
-      scene
-    );
-
+    this.camera = new UniversalCamera("player", this.getEyePosition(), scene);
     this.camera.minZ = 0.1;
-    this.camera.inertia = 0.5;
-    this.camera.setTarget(this.collider.position.add(new Vector3(0, 1.2, 0)));
-
-    const mouseInput = this.camera.inputs.attached.mouse as {
-      touchEnabled?: boolean;
-      angularSensibility?: number;
-    } | undefined;
-    if (mouseInput) {
-      mouseInput.touchEnabled = false;
-    }
-
-    if (this.camera.inputs.attached.keyboard) {
-      this.camera.inputs.remove(this.camera.inputs.attached.keyboard);
-    }
+    this.camera.inputs.clear();
 
     this.onPointerLockChange = () => {
       this.pointerLocked =
         document.pointerLockElement === this.canvas;
+      if (!this.pointerLocked) {
+        this.clearKeys();
+      }
     };
 
     this.onCanvasClick = () => {
@@ -106,9 +92,13 @@ export class PlayerController {
     };
 
     this.onKeyDown = (event: KeyboardEvent) => {
+      if (event.repeat) return;
+
+      if (!this.inputActive) return;
+
       this.keysPressed.add(event.code);
 
-      if (!this.inputActive || this.settings.flying) return;
+      if (this.settings.flying) return;
       if (event.code !== this.settings.keys.flyUp) return;
       if (!this.isGrounded() || this.airborne) return;
       this.jumpVelocity = this.settings.jumpForce;
@@ -117,6 +107,35 @@ export class PlayerController {
 
     this.onKeyUp = (event: KeyboardEvent) => {
       this.keysPressed.delete(event.code);
+      if (event.code === "AltLeft" || event.code === "AltRight") {
+        this.keysPressed.delete("AltLeft");
+        this.keysPressed.delete("AltRight");
+      }
+      if (event.code === "ShiftLeft" || event.code === "ShiftRight") {
+        this.keysPressed.delete("ShiftLeft");
+        this.keysPressed.delete("ShiftRight");
+      }
+    };
+
+    this.onMouseMove = (event: MouseEvent) => {
+      if (!this.inputActive || document.pointerLockElement !== this.canvas) {
+        return;
+      }
+
+      const scale = this.settings.sensitivity / 2000;
+      this.yaw -= event.movementX * scale;
+      this.pitch -= event.movementY * scale;
+
+      if (this.settings.cameraMode === "first") {
+        this.pitch = Math.max(-1.4, Math.min(1.4, this.pitch));
+      } else {
+        this.pitch = Math.max(-0.4, Math.min(0.7, this.pitch));
+      }
+    };
+
+    this.onWindowBlur = () => this.clearKeys();
+    this.onVisibilityChange = () => {
+      if (document.hidden) this.clearKeys();
     };
 
     this.beforeRenderObserver = scene.onBeforeRenderObservable.add(() => {
@@ -130,6 +149,9 @@ export class PlayerController {
     this.canvas.addEventListener("click", this.onCanvasClick);
     window.addEventListener("keydown", this.onKeyDown);
     window.addEventListener("keyup", this.onKeyUp);
+    document.addEventListener("mousemove", this.onMouseMove);
+    window.addEventListener("blur", this.onWindowBlur);
+    document.addEventListener("visibilitychange", this.onVisibilityChange);
 
     this.applySettings(settings);
     this.setInputActive(false);
@@ -139,6 +161,10 @@ export class PlayerController {
     return this.pointerLocked;
   }
 
+  clearKeys(): void {
+    this.keysPressed.clear();
+  }
+
   setInputActive(active: boolean): void {
     this.inputActive = active;
 
@@ -146,17 +172,7 @@ export class PlayerController {
       this.releasePointerLock();
       this.jumpVelocity = 0;
       this.airborne = false;
-      this.keysPressed.clear();
-      if (this.controlsAttached) {
-        this.camera.detachControl();
-        this.controlsAttached = false;
-      }
-      return;
-    }
-
-    if (!this.controlsAttached) {
-      this.camera.attachControl(true);
-      this.controlsAttached = true;
+      this.clearKeys();
     }
   }
 
@@ -178,16 +194,7 @@ export class PlayerController {
   applySettings(settings: PlayerSettings): void {
     this.settings = settings;
 
-    this.camera.speed = settings.speed;
     this.camera.fov = (settings.fov * Math.PI) / 180;
-    this.camera.angularSensibility = 2000 / settings.sensitivity;
-
-    const mouseInput = this.camera.inputs.attached.mouse as {
-      angularSensibility?: number;
-    } | undefined;
-    if (mouseInput) {
-      mouseInput.angularSensibility = 2000 / settings.sensitivity;
-    }
 
     if (settings.flying) {
       this.jumpVelocity = 0;
@@ -209,8 +216,7 @@ export class PlayerController {
   }
 
   private getMoveDirection(): Vector3 {
-    const yaw = this.camera.rotation.y;
-    const forward = new Vector3(Math.sin(yaw), 0, Math.cos(yaw));
+    const forward = new Vector3(Math.sin(this.yaw), 0, Math.cos(this.yaw));
     const right = Vector3.Cross(Vector3.Up(), forward).normalize();
     const move = Vector3.Zero();
 
@@ -241,8 +247,13 @@ export class PlayerController {
       this.collider.moveWithCollisions(move);
     }
 
+    this.syncAvatarPosition();
+  }
+
+  private syncAvatarPosition(): void {
     this.avatar.position.copyFrom(this.collider.position);
     this.avatar.position.y += 0.9;
+    this.avatar.rotation.y = this.yaw;
   }
 
   private getEyePosition(): Vector3 {
@@ -256,22 +267,62 @@ export class PlayerController {
       this.avatar.isVisible = false;
       this.camera.position.copyFrom(feet);
       this.camera.position.y += EYE_HEIGHT;
+      this.camera.rotation.x = this.pitch;
+      this.camera.rotation.y = this.yaw;
+      this.camera.rotation.z = 0;
       return;
     }
 
     this.avatar.isVisible = true;
-    this.avatar.position.copyFrom(feet);
-    this.avatar.position.y += 0.9;
+    this.syncAvatarPosition();
 
-    const yaw = this.camera.rotation.y;
     const dist = this.settings.thirdPersonDistance;
-    const camX = feet.x + Math.sin(yaw) * dist;
-    const camZ = feet.z + Math.cos(yaw) * dist;
+    const camHeight = THIRD_CAM_HEIGHT + this.pitch * 2;
+    const offsetX = Math.sin(this.yaw) * dist;
+    const offsetZ = Math.cos(this.yaw) * dist;
 
-    this.camera.position.set(camX, feet.y + THIRD_CAM_HEIGHT, camZ);
-    this.camera.setTarget(
-      new Vector3(feet.x, feet.y + THIRD_TARGET_HEIGHT, feet.z)
+    const desiredPos = new Vector3(
+      feet.x + offsetX,
+      feet.y + camHeight,
+      feet.z + offsetZ
     );
+
+    this.camera.position.copyFrom(
+      this.resolveThirdPersonPosition(feet, desiredPos)
+    );
+
+    const target = new Vector3(
+      feet.x,
+      feet.y + THIRD_TARGET_HEIGHT,
+      feet.z
+    );
+    this.camera.setTarget(target);
+  }
+
+  private resolveThirdPersonPosition(
+    feet: Vector3,
+    desiredPos: Vector3
+  ): Vector3 {
+    const target = new Vector3(
+      feet.x,
+      feet.y + THIRD_TARGET_HEIGHT,
+      feet.z
+    );
+    const dir = desiredPos.subtract(target);
+    const maxDist = dir.length();
+    if (maxDist < 0.01) return desiredPos;
+
+    dir.normalize();
+    const ray = new Ray(target, dir, maxDist);
+    const pick = this.scene.pickWithRay(ray, (mesh) => {
+      return mesh.checkCollisions && mesh !== this.avatar && mesh !== this.collider;
+    });
+
+    if (pick?.hit && pick.distance !== undefined && pick.distance < maxDist) {
+      return target.add(dir.scale(Math.max(0.8, pick.distance - 0.3)));
+    }
+
+    return desiredPos;
   }
 
   private isGrounded(): boolean {
@@ -294,8 +345,7 @@ export class PlayerController {
     this.collider.position.y += this.jumpVelocity * deltaTime;
     this.jumpVelocity += this.scene.gravity.y * deltaTime * 3;
 
-    this.avatar.position.copyFrom(this.collider.position);
-    this.avatar.position.y += 0.9;
+    this.syncAvatarPosition();
 
     if (this.isGrounded() && this.jumpVelocity <= 0) {
       this.jumpVelocity = 0;
@@ -309,10 +359,10 @@ export class PlayerController {
     this.canvas.removeEventListener("click", this.onCanvasClick);
     window.removeEventListener("keydown", this.onKeyDown);
     window.removeEventListener("keyup", this.onKeyUp);
+    document.removeEventListener("mousemove", this.onMouseMove);
+    window.removeEventListener("blur", this.onWindowBlur);
+    document.removeEventListener("visibilitychange", this.onVisibilityChange);
     this.releasePointerLock();
-    if (this.controlsAttached) {
-      this.camera.detachControl();
-    }
     this.camera.dispose();
     this.avatar.dispose();
     this.collider.dispose();

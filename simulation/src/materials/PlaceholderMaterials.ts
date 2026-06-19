@@ -1,4 +1,4 @@
-import { Color3, Scene, StandardMaterial } from "babylonjs";
+import { Color3, DynamicTexture, Scene, StandardMaterial } from "babylonjs";
 
 export interface BuildingMaterials {
   wall: StandardMaterial;
@@ -9,13 +9,79 @@ export interface BuildingMaterials {
   accent: StandardMaterial;
 }
 
+function createBrickWallTexture(scene: Scene): DynamicTexture {
+  const size = 256;
+  const tex = new DynamicTexture("wallBrickTex", size, scene, true);
+  const ctx = tex.getContext() as CanvasRenderingContext2D;
+
+  const mortar = "#c8c0b4";
+  const brickA = "#b8a898";
+  const brickB = "#a89888";
+
+  ctx.fillStyle = mortar;
+  ctx.fillRect(0, 0, size, size);
+
+  const brickW = 64;
+  const brickH = 28;
+  const gap = 3;
+
+  for (let row = 0; row < size / brickH + 1; row++) {
+    const offset = row % 2 === 0 ? 0 : brickW / 2;
+    for (let col = -1; col < size / brickW + 1; col++) {
+      const x = col * brickW + offset;
+      const y = row * brickH;
+      ctx.fillStyle = (row + col) % 2 === 0 ? brickA : brickB;
+      ctx.fillRect(x + gap / 2, y + gap / 2, brickW - gap, brickH - gap);
+    }
+  }
+
+  tex.update();
+  tex.uScale = 4;
+  tex.vScale = 2;
+  return tex;
+}
+
+function createConcreteTexture(
+  scene: Scene,
+  name: string,
+  base: string,
+  variation: string
+): DynamicTexture {
+  const size = 128;
+  const tex = new DynamicTexture(name, size, scene, true);
+  const ctx = tex.getContext() as CanvasRenderingContext2D;
+
+  ctx.fillStyle = base;
+  ctx.fillRect(0, 0, size, size);
+
+  for (let i = 0; i < 400; i++) {
+    const x = Math.random() * size;
+    const y = Math.random() * size;
+    const w = 2 + Math.random() * 6;
+    const h = 2 + Math.random() * 6;
+    ctx.fillStyle = variation;
+    ctx.globalAlpha = 0.15 + Math.random() * 0.2;
+    ctx.fillRect(x, y, w, h);
+  }
+  ctx.globalAlpha = 1;
+  tex.update();
+  tex.uScale = 6;
+  tex.vScale = 6;
+  return tex;
+}
+
 export function createPlaceholderMaterials(scene: Scene): BuildingMaterials {
   const wall = new StandardMaterial("wallMat", scene);
-  wall.diffuseColor = new Color3(0.91, 0.88, 0.84);
-  wall.specularColor = new Color3(0.1, 0.1, 0.1);
+  wall.diffuseTexture = createBrickWallTexture(scene);
+  wall.specularColor = new Color3(0.08, 0.08, 0.08);
 
   const floor = new StandardMaterial("floorMat", scene);
-  floor.diffuseColor = new Color3(0.62, 0.62, 0.62);
+  floor.diffuseTexture = createConcreteTexture(
+    scene,
+    "floorTex",
+    "#8a8a8a",
+    "#6e6e6e"
+  );
   floor.specularColor = new Color3(0.05, 0.05, 0.05);
 
   const ceiling = new StandardMaterial("ceilingMat", scene);
@@ -27,7 +93,12 @@ export function createPlaceholderMaterials(scene: Scene): BuildingMaterials {
   door.specularColor = new Color3(0.1, 0.1, 0.1);
 
   const exterior = new StandardMaterial("exteriorMat", scene);
-  exterior.diffuseColor = new Color3(0.75, 0.73, 0.7);
+  exterior.diffuseTexture = createConcreteTexture(
+    scene,
+    "exteriorTex",
+    "#b8b4ae",
+    "#9a9690"
+  );
   exterior.specularColor = new Color3(0.1, 0.1, 0.1);
 
   const accent = new StandardMaterial("accentMat", scene);
