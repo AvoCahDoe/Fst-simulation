@@ -8,13 +8,13 @@
 
       <div class="settings-body">
         <label class="field">
-          <span>Player speed ({{ local.speed.toFixed(2) }})</span>
+          <span>Player speed ({{ local.speed.toFixed(1) }})</span>
           <input
             v-model.number="local.speed"
             type="range"
             :min="SPEED_MIN"
             :max="SPEED_MAX"
-            step="0.01"
+            step="0.1"
             @input="emitChange"
           />
         </label>

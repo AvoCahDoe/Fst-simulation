@@ -22,15 +22,15 @@ export interface PlayerSettings {
 
 const STORAGE_KEY = "fst-sim-player-settings";
 
-export const SPEED_MIN = 0.05;
-export const SPEED_MAX = 2.0;
+export const SPEED_MIN = 1;
+export const SPEED_MAX = 6;
 export const JUMP_FORCE_MIN = 0.2;
 export const JUMP_FORCE_MAX = 1.5;
 export const THIRD_DIST_MIN = 2;
 export const THIRD_DIST_MAX = 10;
 
 export const DEFAULT_PLAYER_SETTINGS: PlayerSettings = {
-  speed: 0.12,
+  speed: 2.5,
   fov: 75,
   sensitivity: 1.0,
   flying: false,
@@ -113,16 +113,22 @@ function cloneDefaults(): PlayerSettings {
   };
 }
 
+function normalizeSpeed(value: number | undefined): number {
+  let speed = value ?? DEFAULT_PLAYER_SETTINGS.speed;
+  // Migrate legacy slider values (0.05–2.0 with old *60 multiplier)
+  if (speed < 1) {
+    speed *= 20;
+  }
+  return Math.min(SPEED_MAX, Math.max(SPEED_MIN, speed));
+}
+
 export function loadPlayerSettings(): PlayerSettings {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return cloneDefaults();
     const parsed = JSON.parse(raw) as Partial<PlayerSettings>;
     return {
-      speed: Math.min(
-        SPEED_MAX,
-        Math.max(SPEED_MIN, parsed.speed ?? DEFAULT_PLAYER_SETTINGS.speed)
-      ),
+      speed: normalizeSpeed(parsed.speed),
       fov: parsed.fov ?? DEFAULT_PLAYER_SETTINGS.fov,
       sensitivity: parsed.sensitivity ?? DEFAULT_PLAYER_SETTINGS.sensitivity,
       flying: parsed.flying ?? DEFAULT_PLAYER_SETTINGS.flying,

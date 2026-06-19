@@ -58,7 +58,7 @@ export class PlayerController {
     );
     this.collider.isVisible = false;
     this.collider.position = spawnPosition.clone();
-    this.collider.position.y -= 0.9;
+    this.collider.position.y += 0.9;
     this.collider.checkCollisions = true;
     this.collider.ellipsoid = new Vector3(0.35, 0.9, 0.35);
 
@@ -239,7 +239,7 @@ export class PlayerController {
     const move = this.getMoveDirection();
     if (move.lengthSquared() < 0.001) return;
 
-    move.normalize().scale(this.settings.speed * deltaTime * 60);
+    move.normalize().scale(this.settings.speed * deltaTime);
 
     if (this.settings.flying) {
       this.collider.position.addInPlace(move);

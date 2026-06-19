@@ -33,7 +33,8 @@ export class FacultyBuilding {
     this.buildGroundFloor();
     this.buildUpperFloor();
     this.buildStaircases();
-    this.spawnPosition = new Vector3(0, FLOOR_HEIGHT * 0.55, 18);
+    // Atrium center, ground floor (feet position)
+    this.spawnPosition = new Vector3(0, 0, 0);
   }
 
   getMeshes(): Mesh[] {
